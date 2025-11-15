@@ -35,6 +35,9 @@ app.get("/", (req, res) => {
   res.render("index", { title: "Home | CSE Motors" });
 });
 
+// Inventory route
+app.use("/inv", inventoryRoute);
+
 // 404 route (must be last)
 app.use((req, res) => {
   res.status(404).render("404", { title: "Page Not Found | CSE Motors" });
