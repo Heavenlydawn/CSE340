@@ -1,7 +1,8 @@
-/* ******************************************
+/* *************************************
  * CSE Motors - Assignment 1 Server
  * Basic Express setup for EJS views
- *******************************************/
+ ***************************************
+ */
 
 /* ***********************
  * Require Statements
@@ -9,6 +10,8 @@
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
 const dotenv = require("dotenv");
+const inventoryRoute = require("./routes/inventoryRoute");
+const utilities = require("./utilities");
 
 // Load environment variables
 dotenv.config();
@@ -31,16 +34,42 @@ app.use(express.static("public"));
 /* ***********************
  * Routes
  *************************/
-app.get("/", (req, res) => {
-  res.render("index", { title: "Home | CSE Motors" });
-});
+app.get(
+  "/",
+  utilities.handleErrors(async (req, res) => {
+    res.render("index", { title: "Home | CSE Motors" });
+  })
+);
 
 // Inventory route
 app.use("/inv", inventoryRoute);
 
 // 404 route (must be last)
-app.use((req, res) => {
-  res.status(404).render("404", { title: "Page Not Found | CSE Motors" });
+app.use(
+  utilities.handleErrors(async (req, res) => {
+    res.status(404).render("404", { title: "Page Not Found | CSE Motors" });
+  })
+);
+
+/* ***********************
+ * Error Handling Middleware
+ *************************/
+app.use(async (err, req, res, next) => {
+  let nav = await utilities.getNav();
+  console.error(`Error at: "${req.originalUrl}": ${err.message}`);
+  if (err.status == 404) {
+    res.status(404).render("404", {
+      title: "Page Not Found | CSE Motors",
+      nav,
+      message: err.message,
+    });
+  } else {
+    res.status(500).render("500", {
+      title: "Server Error | CSE Motors",
+      nav,
+      message: err.message,
+    });
+  }
 });
 
 /* ***********************

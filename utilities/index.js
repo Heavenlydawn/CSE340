@@ -8,7 +8,7 @@ const Util = {};
  * Build vehicle detail view
  ************************** */
 Util.buildVehicleDetail = async function (data) {
-    let vDescription = `
+  let vDescription = `
 
   <div class="detailsView">
 
@@ -16,25 +16,71 @@ Util.buildVehicleDetail = async function (data) {
       <img src="${data.inv_image}" alt="${data.inv_make} ${data.inv_model}">
     </div>
 
-    <ul class="col2">
-      <li> <strong> ${data.inv_make} ${data.inv_model} Details </strong></li>
+    <div class="col2">
+      <h2>${data.inv_year} ${data.inv_make} ${data.inv_model}</h2>
 
-      <li> <strong>Price:</strong> 
-          $${new Intl.NumberFormat("en-US").format(data.inv_price)}
-      </li>
+      <p><strong>Price:</strong> $${new Intl.NumberFormat("en-US").format(
+        data.inv_price
+      )}</p>
 
-      <li> <strong>Description:</strong> ${data.inv_description}</li>
-      <li> <strong>Color:</strong> ${data.inv_color}</li>
+      <p><strong>Description:</strong> ${data.inv_description}</p>
 
-      <li> <strong>Miles:</strong>
-          ${new Intl.NumberFormat("en-US", {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 2,
-          }).format(data.inv_miles)}
-      </li>
-    </ul>
+      <p><strong>Color:</strong> ${data.inv_color}</p>
+
+      <p><strong>Miles:</strong> ${new Intl.NumberFormat("en-US").format(
+        data.inv_miles
+      )}</p>
+
+      <p><strong>Year:</strong> ${data.inv_year}</p>
+
+      <p><strong>Make:</strong> ${data.inv_make}</p>
+
+      <p><strong>Model:</strong> ${data.inv_model}</p>
+    </div>
 
   </div>
   `;
-    return vDescription;
+  return vDescription;
 };
+
+/* *****************************
+ * Build the navigation bar
+ ***************************** */
+Util.getNav = async function () {
+  try {
+    let data = await invModel.getClassifications();
+    if (!data) {
+      throw new Error("No classifications found");
+    }
+    let list = "<ul>";
+    list += '<li><a href="/" title="Home page">Home</a></li>';
+    data.forEach((row) => {
+      list += "<li>";
+      list +=
+        '<a href="/inv/type/' +
+        row.classification_id +
+        '" title="See our inventory of ' +
+        row.classification_name +
+        ' vehicles">' +
+        row.classification_name +
+        "</a>";
+      list += "</li>";
+    });
+    list += "</ul>";
+    return list;
+  } catch (error) {
+    console.error("getNav error: " + error);
+    return "<ul><li><a href='/' title='Home page'>Home</a></li></ul>";
+  }
+};
+
+/* **************************************
+ * Middleware For Handling Errors
+ * Wrap other function in this for
+ * General Error Handling
+ ****************************************
+ */
+Util.handleErrors = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+module.exports = Util;
