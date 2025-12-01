@@ -7,32 +7,22 @@ require("dotenv").config();
  *  • Log queries only in development
  **************************************** */
 
-let pool;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },   // Render requires this; harmless locally
+});
 
-if (process.env.NODE_ENV === "development") {
-    pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        // ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
-        ssl: { rejectUnauthorized: false }
-    });
+const isDev = process.env.NODE_ENV === "development";
 
-    // Added for troubleshooting queries during development
-    module.exports = {
-        async query(text, params) {
-            try {
-                const res = await pool.query(text, params);
-                console.log("executed query", { text });
-                return res;
-            } catch (error) {
-                console.error("error in query", { text });
-                throw error;
-            }
-        },
-    };
-} else {
-    pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-    });
-
-    module.exports = pool;
-}
+module.exports = {
+  async query(text, params) {
+    try {
+      const res = await pool.query(text, params);
+      if (isDev) console.log("executed query", { text });
+      return res;
+    } catch (error) {
+      console.error("error in query", { text });
+      throw error;
+    }
+  },
+};
